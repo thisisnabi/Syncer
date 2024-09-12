@@ -1,10 +1,12 @@
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddMemoryCache();
+
+builder.Services.AddHostedService<MemoryCacheSetup>();
 builder.Services.AddDbContext<SyncerDbContext>((sp, configure) =>
 {
     var connectionString = sp.GetRequiredService<IConfiguration>()
