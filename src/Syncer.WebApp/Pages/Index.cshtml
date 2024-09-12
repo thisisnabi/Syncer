@@ -3,9 +3,182 @@
 @{
     ViewData["Title"] = "Home page";
 }
+ 
+<div class="container">
+    <div class="rooms-logo">
+        <img src="~/join.png" alt="Rooms Logo">
+    </div>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Speaker <a href="/Speaker">Click</a></p>
-    <p>Joiner <a href="/Joiner">Click</a></p>
+    <h1>Join your Room meeting</h1>
+
+    <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" autocomplete="off" name="username" placeholder="Enter your username">
+    </div>
+    <div class="input-group">
+        <label for="presentation">Presentation</label>
+        <input type="text" id="presentation" autocomplete="off" name="presentation" placeholder="Presentation">
+    </div>
+
+    <button class="join-button" onclick="joinToPresentation()">Joinier</button>
+    <br/>
+    <button class="join-button" onclick="Present()">Speaker</button>
+     
 </div>
+
+@section Scripts
+{
+    <script>
+        function joinToPresentation() {
+            var url = 'https://localhost:7209/Presentation/' + $("#presentation").val() + "/join";
+            const userdata = JSON.stringify({
+                joinerId: $("#username").val()
+            });
+
+            $.ajax({
+                url: url,
+                data: userdata,
+                contentType: 'application/json',
+                dataType: 'json',
+                type: 'Post',
+                success: function (response) {
+                    console.log("user is valid");
+                    setCookie("username", $("#username").val());
+                    setCookie("presentation", $("#presentation").val());
+                    window.location.href = "/Joiner";
+                },
+                error: function () {
+                    alert('Please fill out all fields.');
+                }
+            });
+        }
+         
+        function Present() {
+            var url = 'https://localhost:7209/Presentation/' + $("#presentation").val() + "/present";
+
+            $.ajax({
+                url: url,
+                type: 'PUT',
+                success: function (response) {
+                    setCookie("username", $("#username").val());
+                    setCookie("presentation", $("#presentation").val());
+                    setCookie("thisisnabi", "nabi");
+                    window.location.href = "/Speaker";
+                },
+                error: function () {
+                    alert('Please fill out all fields.');
+                }
+            });
+        }
+
+
+        function setCookie(name, value) {
+            const date = new Date();
+            date.setTime(date.getTime() + (10 * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+    </script>
+}
+
+@section Styles
+{
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #444;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            border-radius: 8px;
+        }
+
+        .rooms-logo {
+            margin-bottom: 20px;
+        }
+
+            .rooms-logo img {
+                max-width: 100px;
+                height: auto;
+            }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        p {
+            margin-top: 10px;
+            margin-bottom: -0.5rem !important;
+            color: #444;
+        }
+
+        a {
+            color: #0078d4;
+            text-decoration: none;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+            .input-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+
+            .input-group input {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-sizing: border-box;
+                font-size: 16px;
+            }
+
+        .join-button {
+            background-color: #0078d4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+            .join-button:hover {
+                background-color: #005ea6;
+            }
+
+        footer {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .input-group input.error {
+            border: 2px solid red;
+        }
+
+    </style>
+}
+
+

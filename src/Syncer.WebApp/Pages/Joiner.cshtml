@@ -3,156 +3,146 @@
 @{
     ViewData["Title"] = "Joiner page";
 }
-
-
-
 <div class="container">
-    <div class="rooms-logo">
-        <img src="~/join.png" alt="Rooms Logo">
+    <h2 id="presentation_name"></h2>
+    <p id="presentation_desc"></p>
+    
+    <div>
+        <ul id="milestones">
+
+        </ul>
+        <hr />
+        <ul id="emojies">
+        </ul>
     </div>
-
-    <h1>Join your Room meeting</h1>
-
-    <div class="input-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" autocomplete="off" name="username" placeholder="Enter your username">
-    </div>
-    <div class="input-group">
-        <label for="presentation">Presentation</label>
-        <input type="text" id="presentation" autocomplete="off" name="presentation" placeholder="Presentation">
-    </div>
-
-    <button class="join-button" onclick="joinToPresentation()">Join on the Rooms app</button>
-
-    <p>Do you want to be a real member? <a href="#">Let's go</a></p>
+ 
 </div>
+
 
 @section Scripts
 {
     <script>
-        function joinToPresentation() {
-            const usernameInput = document.getElementById('username');
-            const presentationInput = document.getElementById('presentation');
+        const presentationId = getCookie("presentation");
+        const username = getCookie("username");
+        const baseUrl = 'https://localhost:7209/Presentation/'
+ 
+        $.get(baseUrl + presentationId, function (data) {
+            $("#presentation_name").text(data.title);
+            $("#presentation_desc").text(data.description);
 
-            usernameInput.classList.remove('error');
-            var url = 'https://localhost:7209/Presentation/' + presentationInput + "/join";
-            $.ajax({
-                url: url,
-                data: {
-                    joinerId: usernameInput
-                },
-                type: 'Post',
-                success: function (response) {
-                    console.log("user is valid");
-                },
-                error: function () {
-                    console.error("failed connection to the identity server!");
-                    alert('Please fill out all fields.');
+            for (var i = 0; i < data.milestones.length; i++) 
+            {
+                $("#milestones").append("<li id='ml" + data.milestones[i].id + "'>" + data.milestones[i].title + ", <span class='status'>" + data.milestones[i].status + "</span></li>");
+            }
+        });
+
+        setInterval(MilestoneStatus, 15000);
+
+        function MilestoneStatus() 
+        { 
+            $.get(baseUrl + presentationId, function (data) {
+
+                $("#milestones").empty();
+                var hasProcessing = false;
+                var selectedId = 0;
+
+                for (var i = 0; i < data.milestones.length; i++) {
+                    $("#milestones").append("<li id='ml" + data.milestones[i].id + "'>" + data.milestones[i].title + ", <span class='status'>" + data.milestones[i].status + "</span></li>");
+
+                    if (data.milestones[i].status === "Processing") {
+                        hasProcessing = true;
+                        selectedId = data.milestones[i].id;
+                    }
                 }
+
+                $("#emojies").empty();
+                if (hasProcessing) {
+                    InProcessing(selectedId);
+                }
+
             });
         }
-    </script>
 
+
+        function InProcessing(milestoneId) 
+        {
+            $.get(baseUrl + presentationId + "/" + milestoneId + "/emojis", function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    var htmlCode = "&#x" + data[i].code.replace("U+", "") + ";";
+                    $("#emojies").append("<li class='mlemoji' data-code='" + data[i].code + "'>" + htmlCode + "</li>");
+                }
+
+                $(".mlemoji").on("click", function () { 
+                    const userdata = JSON.stringify({
+                        code: $(this).data("code"),
+                        username: username
+                    });
+
+                    debugger
+                    var endpoointUrl = baseUrl + presentationId + "/reaction"
+                    $.ajax({
+                        url: endpoointUrl,
+                        data: userdata,
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        type: 'Post',
+                        success: function (response) {
+                            alert('saved!');
+                        },
+                        error: function () {
+                            alert('Please fill out all fields.');
+                        }
+                    });
+                    
+                })
+
+            });
+        }
+
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const cookiesArray = document.cookie.split(';');
+
+            for (let i = 0; i < cookiesArray.length; i++) {
+                let cookie = cookiesArray[i].trim();
+                if (cookie.indexOf(nameEQ) === 0) {
+                    return cookie.substring(nameEQ.length, cookie.length);
+                }
+            }
+            return null; 
+        }
+
+    </script>
 }
 
 @section Styles
 {
     <style>
         body {
+            background-color: #ffe599;
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: #444;
         }
 
         .container {
-            text-align: center;
-            max-width: 400px;
-            width: 100%;
+            margin: 20px auto;
             padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
+            width: 50%;
+            background-color: white;
+            border: 2px solid green;
             border-radius: 8px;
         }
 
-        .rooms-logo {
-            margin-bottom: 20px;
+        h2 {
+            text-align: center;
+            color: green;
         }
 
-            .rooms-logo img {
-                max-width: 100px;
-                height: auto;
-            }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #444;
+        ul li
+        {
+            font-size:20px;
         }
 
-        p {
-            margin-top: 10px;
-            margin-bottom: -0.5rem !important;
-            color: #444;
-        }
-
-        a {
-            color: #0078d4;
-            text-decoration: none;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-            .input-group label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: bold;
-            }
-
-            .input-group input {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                box-sizing: border-box;
-                font-size: 16px;
-            }
-
-        .join-button {
-            background-color: #0078d4;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-            .join-button:hover {
-                background-color: #005ea6;
-            }
-
-        footer {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #444;
-        }
-
-        .input-group input.error {
-            border: 2px solid red;
-        }
-
+       
     </style>
 }
-
-

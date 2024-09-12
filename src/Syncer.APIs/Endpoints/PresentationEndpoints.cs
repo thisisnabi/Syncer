@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
+using Syncer.APIs.Hubs;
 using Syncer.APIs.Models.Domain;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Syncer.APIs.Endpoints;
 
@@ -69,7 +72,7 @@ public static class PresentationEndpoints
                 presentation.StartPresent();
                 await dbContext.SaveChangesAsync();
 
-                return Results.Ok();
+                return Results.Ok("valid action");
             }
             catch (Exception)
             {
@@ -91,13 +94,95 @@ public static class PresentationEndpoints
                 presentation.AddJoiner(new PresentationJoiner(request.joinerId));
                 await dbContext.SaveChangesAsync();
 
-                return Results.Ok();
+                return Results.Ok("valid user");
             }
             catch (Exception)
             {
                 return Results.BadRequest();
             }
         });
+
+
+        group.MapPost("/{presentation_id}/reaction",
+        async ([FromRoute(Name = "presentation_id")] string presentationId,
+            CreateReactionRequest request, 
+            IHubContext<BoardHub> HubCallerContext,
+            PresentationService presentationService,
+            SyncerDbContext dbContext, IMemoryCache cache) =>
+        {
+            try
+            {
+                var presentation = await dbContext.Presentations
+                                                  .Include(d => d.Joiners)
+                                                  .FirstAsync(x => x.Id == presentationId);
+
+                presentation.Act(request.code, request.username);
+                var hasChanges = await dbContext.SaveChangesAsync() > 0;
+                if (!hasChanges)
+                    return Results.Ok("valid user");
+
+                var connectionId = presentationService.GetConnectionIdByPresentationId(presentationId);
+
+                if (string.IsNullOrEmpty(connectionId))
+                    return Results.Ok("valid user");
+
+                await HubCallerContext.Clients.Client(connectionId).SendAsync("OnReaction", request.username, request.code);
+                return Results.Ok("valid user");
+            }
+            catch (Exception)
+            {
+                return Results.BadRequest();
+            }
+        });
+
+
+
+
+        group.MapGet("/{presentation_id}",
+        async ([FromRoute(Name = "presentation_id")] string presentationId, SyncerDbContext dbContext) =>
+        {
+            try
+            {
+                var presentation = await dbContext.Presentations
+                                                  .Include(x => x.Milestones)
+                                                  .FirstAsync(x => x.Id == presentationId);
+
+                return Results.Ok(new
+                {
+                    Title = presentation.Title,
+                    Description = presentation.Description,
+                    Milestones = presentation.Milestones.Select(x => new { 
+                        Id = x.Id,
+                        Title = x.Title,
+                        Description = x.Description,
+                        Status = Enum.GetName(x.Status),
+                    })
+                });
+            }
+            catch (Exception)
+            {
+                return Results.BadRequest();
+            }
+        });
+
+        group.MapGet("/{presentation_id}/{milestone_id}/emojis",
+async ([FromRoute(Name = "presentation_id")] string presentationId,
+       [FromRoute(Name = "milestone_id")] long milestoneId,
+SyncerDbContext dbContext) =>
+{
+    try
+    {
+        var presentation = await dbContext.Presentations
+                                          .Include(x => x.Milestones)
+                                          .FirstAsync(x => x.Id == presentationId);
+        var milestone = presentation.Milestones.FirstOrDefault(x => x.Id == milestoneId);
+        return Results.Ok(milestone!.Emojis.ToList());
+    }
+    catch (Exception)
+    {
+        return Results.BadRequest();
+    }
+});
     }
 }
 
@@ -106,4 +191,5 @@ public record CreatePresentationRequest
 
 public record CreateMilestoneRequest(string Title, string Description, List<string> AllowedEmojis);
 public record CreateJoinRequest(string joinerId);
+public record CreateReactionRequest(string code, string username);
 

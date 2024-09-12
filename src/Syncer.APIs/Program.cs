@@ -1,4 +1,6 @@
 
+using Syncer.APIs.Hubs;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(configure => {
@@ -11,6 +13,8 @@ builder.Services.AddCors(configure => {
                        .AllowCredentials();
     });
 });
+
+builder.Services.AddSignalR();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -26,6 +30,8 @@ builder.Services.AddDbContext<SyncerDbContext>((sp, configure) =>
     configure.UseSqlServer(connectionString);
 });
 
+builder.Services.AddSingleton<PresentationService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -34,8 +40,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("localhost");
+
 app.UseHttpsRedirection();
 app.MapEmojiEndpoints();
 app.MapPresentationEndpoints();
+
+app.MapHub<BoardHub>("/board");
 
 app.Run();

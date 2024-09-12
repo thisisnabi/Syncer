@@ -3,3 +3,115 @@
 @{
     ViewData["Title"] = "Speaker page";
 }
+<div class="container">
+    <h2 id="presentation_name"></h2>
+    <p id="presentation_desc"></p>
+    
+    <div>
+        <ul id="milestones">
+
+        </ul>
+        <hr />
+        <ul id="emojies">
+        </ul>
+    </div>
+ 
+</div>
+
+
+@section Scripts
+{
+    <script>
+        const presentationId = getCookie("presentation");
+        setCookie("cid",presentationId.replace(" ", "-"));
+
+        const username = getCookie("username");
+        const baseUrl = 'https://localhost:7209/Presentation/'
+
+        $.get(baseUrl + presentationId, function (data) {
+            $("#presentation_name").text(data.title);
+            $("#presentation_desc").text(data.description);
+
+            for (var i = 0; i < data.milestones.length; i++) {
+                $("#milestones").append("<li id='ml" + data.milestones[i].id + "'>" + data.milestones[i].title + ", <span class='status'>" + data.milestones[i].status + "</span></li>");
+            }
+        });
+
+
+      var connection = new signalR.HubConnectionBuilder()
+             .withUrl("https://localhost:7209/board")
+            .build();
+
+        connection.start().then(function () {
+            console.log("Connected to the chat server!");
+        }).catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        connection.on("OnReaction", (username, code) => {
+
+                 var htmlCode = "&#x" + code.replace("U+", "") + ";";
+                $("#emojies").append("<li>"+username+" : "+ htmlCode+ "</li>");
+
+         });
+
+
+
+         function getCookie(name) {
+                    const nameEQ = name + "=";
+                    const cookiesArray = document.cookie.split(';');
+
+                    for (let i = 0; i < cookiesArray.length; i++) {
+                        let cookie = cookiesArray[i].trim();
+                        if (cookie.indexOf(nameEQ) === 0) {
+                            return cookie.substring(nameEQ.length, cookie.length);
+                        }
+                    }
+                    return null;
+          }
+        function setCookie(name, value) {
+            const date = new Date();
+            date.setTime(date.getTime() + (10 * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+    </script>
+}
+
+@section Styles
+{
+    <style>
+        body {
+            background-color: #ffe599;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin: 20px auto;
+            padding: 20px;
+            width: 50%;
+            background-color: white;
+            border: 2px solid green;
+            border-radius: 8px;
+        }
+        h2 {
+            text-align: center;
+            color: green;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 2px solid blue;
+        }
+        .active {
+            background-color: lightgreen;
+        }
+        .milestones {
+            text-align: left;
+        }
+    </style>
+}

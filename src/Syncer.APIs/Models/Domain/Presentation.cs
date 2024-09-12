@@ -52,6 +52,23 @@ public class Presentation
         Status = PresentationStatus.Present;
     }
 
+    internal void Act(string code, string userid)
+    {
+        var activeMilestone = Milestones.First(x => x.Status == MilestoneStatus.Processing);
+
+        if (!activeMilestone.Emojis.Any(d => d.Code == code))
+            throw new InvalidOperationException();
+
+        if (activeMilestone.Reactions.Any(d => d.Username == userid))
+            return;
+
+        activeMilestone.Reactions.Add(new Reaction
+        {
+            Username = userid,
+            EmojiCode = code
+        });
+    }
+
     public ICollection<PresentationJoiner> Joiners { get; set; } = null!;
 
     public ICollection<Milestone> Milestones { get; set; } = null!;
