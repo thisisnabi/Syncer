@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5D35387C-14C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syncer.APIs", "src\Syncer.APIs\Syncer.APIs.csproj", "{BED2E37A-11A0-4D91-A9CB-AEB23284C3E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syncer.WebApp", "src\Syncer.WebApp\Syncer.WebApp.csproj", "{7AD42B6F-256B-4EA8-B78D-D7F1FD36F383}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,11 +19,19 @@ Global
 		{BED2E37A-11A0-4D91-A9CB-AEB23284C3E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BED2E37A-11A0-4D91-A9CB-AEB23284C3E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BED2E37A-11A0-4D91-A9CB-AEB23284C3E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AD42B6F-256B-4EA8-B78D-D7F1FD36F383}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AD42B6F-256B-4EA8-B78D-D7F1FD36F383}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AD42B6F-256B-4EA8-B78D-D7F1FD36F383}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AD42B6F-256B-4EA8-B78D-D7F1FD36F383}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BED2E37A-11A0-4D91-A9CB-AEB23284C3E7} = {5D35387C-14C2-4269-A426-F35EA98F96AA}
+		{7AD42B6F-256B-4EA8-B78D-D7F1FD36F383} = {5D35387C-14C2-4269-A426-F35EA98F96AA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {40152296-E2C6-4FF3-B5B1-0E2C25479122}
 	EndGlobalSection
 EndGlobal
