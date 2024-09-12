@@ -12,6 +12,8 @@ public class Presentation
 
     public PresentationStatus Status { get; set; }
 
+    public ICollection<PresentationJoiner> Joiners { get; set; } = null!;
+
     public ICollection<Milestone> Milestones { get; set; } = null!;
 }
 
@@ -22,3 +24,6 @@ public enum PresentationStatus
     Present = 2,
     Finished = 3
 }
+
+
+public record PresentationJoiner(string Username);
