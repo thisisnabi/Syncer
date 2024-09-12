@@ -1,6 +1,17 @@
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(configure => {
+
+    configure.AddPolicy("localhost", configurePolicy =>
+    {
+        configurePolicy.WithOrigins("https://localhost:7086")
+                       .AllowAnyHeader()
+                       .AllowAnyMethod()
+                       .AllowCredentials();
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -25,5 +36,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapEmojiEndpoints();
+app.MapPresentationEndpoints();
 
 app.Run();
